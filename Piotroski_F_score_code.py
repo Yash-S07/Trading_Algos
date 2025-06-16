@@ -142,6 +142,15 @@ for ticker in tickers:
     except Exception as e:
         print(ticker,":", e)
 
+#Save the file
+with open("financial_data_3yr.pkl", "wb") as f:
+    pickle.dump(financial_dir, f)
+
+# Load it back later
+with open("financial_data_3yr.pkl", "rb") as f:
+    financial_dir = pickle.load(f)    
+
+
 # selecting relevant financial information for each stock using fundamental data
 stats = ["Net Income from Continuing Operations",
          "Total Assets",
