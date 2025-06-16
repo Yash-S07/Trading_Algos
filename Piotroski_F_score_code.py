@@ -142,11 +142,6 @@ for ticker in tickers:
     except Exception as e:
         print(ticker,":", e)
 
-
-### Currently using the value investing one only since need to get rid of a few columns only. Extra columns are not a problem
-### Cant use that. It only has current years values previous uda di thi
-
-
 # selecting relevant financial information for each stock using fundamental data
 stats = ["Net Income from Continuing Operations",
          "Total Assets",
@@ -178,7 +173,6 @@ def info_filter(df,stats,indx,lookback):
     df_new.loc["OtherLTDebt",:] = df_new.loc["TotLTLiab",:] - df_new.loc["LTDebt",:]
     return df_new
 
-#applying filtering to the finacials
 t_df = {}
 for ticker in financial_dir:
     t_df[ticker] = info_filter(financial_dir[ticker],stats,indx,3)
