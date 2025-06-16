@@ -18,89 +18,11 @@ from selenium.webdriver.chrome.options import Options
 import copy
 import pickle # To save data since requires a lot of time to scrap data
 path  = r"C:\Users\Yash Singhal\Desktop\trading_1\chromedriver-win64\chromedriver.exe"
-#service = webdriver.chrome.service.Service(path)
-#service.start()
-#options = Options()
-#options.add_argument("--headless")  # To not render actual browser
 
 tickers = ["MMM","AXP","AAPL","BA","CAT","CVX","CSCO","KO","DIS",
            "XOM","GE","GS","HD","IBM","INTC","JNJ","JPM","MCD","MRK",
            "MSFT","NKE","PFE","PG","TRV","UNH","VZ","V","WMT"]
 
-'''
-
-I am getting some error in this... mentioned in error_value_investing
-def get_fin_stat(ticker,type_of_stat = "income_statement"):
-    """
-    Parameters
-    ----------
-    ticker : str
-    type_of_statement : str
-        DESCRIPTION. either of income_statement, balance_sheet and cashflow_statement. The default is income_statement.
-    depth : int
-        DESCRIPTION. till what depth of the statement you need to go. if depth is 2, the code will iterate the button finding process twice
-
-    Returns
-    -------
-    df : dataframe
-
-    """
-    if type_of_stat == "income_statement":
-        url = f"https://finance.yahoo.com/quote/{ticker}/financials/"
-    elif type_of_stat == "balance_sheet":
-        url = f"https://finance.yahoo.com/quote/{ticker}/balance-sheet/"
-    elif type_of_stat == "Cash_Flow":
-        url = f"https://finance.yahoo.com/quote/{ticker}/cash-flow/"
-        
-    service = webdriver.chrome.service.Service(path)
-    service.start()
-    options = Options()
-    options.add_argument("--headless")  # To not render actual browser
-    
-    driver = webdriver.Chrome(service = service,options = options)
-    driver.get(url)
-    driver.implicitly_wait(2)
-    
-    # How about instead of pressing all buttons i just press the expand all button
-    
-    #clicked_buttons = []
-    print('here')
-    
-    buttons = driver.find_element(By.XPATH,'//button[@class = "link2-btn fin-size-small rounded yf-y8kifl"]')
-    #buttons = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="expandContainer yf-m6gtul"]//button')))
-    #buttons = [i for i in buttons if i not in clicked_buttons]
-    print(buttons.accessible_name)
-    WebDriverWait(driver,20).until(EC.element_to_be_clickable(buttons)).click()
-    #driver.implicitly_wait(10)
-    print('here2')
-    
-    temp = {}
-    table = driver.find_elements(By.XPATH,  '//div[@class="tableBody yf-9ft13"]')
-    table_heading = driver.find_elements(By.XPATH,  '//div[@class="tableHeader yf-9ft13"]')
-    #print(table_heading)
-    for cell in table_heading:
-        headings = cell.text.split(' ')
-    #print(headings)
-        
-    for cell in table:
-        vals = cell.text.split('\n')
-        #print(vals)
-        #print('\n\n\n')
-        for count,element in enumerate(vals):
-            if count%len(headings) == 0:
-                key = element
-                temp[key] = []
-            else:
-                temp[key].append(element)
-    df = pd.DataFrame(temp).T
-    df.columns = headings[1:]
-    for col in df.columns:
-        df[col] = df[col].str.replace(',','')
-        df[col] = pd.to_numeric(df[col],errors="coerce").fillna(0)
-        
-    driver.close()
-    return df
-'''
 def get_fin_stat(ticker, type_of_stat="income_statement"):
     """
     Parameters
@@ -231,10 +153,8 @@ def get_key_stat(ticker):
     
     cells = table.text.split('\n')
     for i in range(len(cells)):
-        #losing out on some values since not all headings occur at index == 3q
         if cells[i] not in not_req:
             vals = cells[i].split(" ")
-            #print(vals)
             temp_dir[" ".join(vals[:-1])] = vals[-1]
         
         
@@ -264,7 +184,6 @@ def get_more_data(ticker):
     cell = table[1]
     cells=cell.text.split('\n')
     for i in range(len(cells)):
-        #losing out on some values since not all headings occur at index == 3q
         if cells[i] not in not_req:
             vals = cells[i].split(" ")
             #print(vals)
@@ -313,7 +232,7 @@ with open("financial_data.pkl", "wb") as f:
 with open("financial_data.pkl", "rb") as f:
     financial_dir = pickle.load(f)    
 
-# creating dataframe with relevant financial information for each stock using fundamental data
+# Creating dataframe with relevant financial information for each stock using fundamental data
 stats = ["EBITDA",
          "Depreciation Amortization Depletion",
          "Market Cap",
@@ -329,15 +248,6 @@ stats = ["EBITDA",
 
 indx = ["EBITDA","D&A","MarketCap","NetIncome","CashFlowOps","Capex","CurrAsset",
         "CurrLiab","PPE","BookValue","TotDebt","DivYield"]
-
-'''
-a = get_fin_stat("AAPL")
-b = get_fin_stat("AAPL",'balance_sheet')
-c = get_fin_stat("AAPL",'Cash_Flow')
-d = get_key_stat("AAPL")
-#dddfff = get_fin_stat("JPM",'Cash_Flow')
-ddff = get_fin_stat("MMM",'Cash_Flow')
-'''
 
 def info_filter(df,stats,indx):
     """function to filter relevant financial information
@@ -371,18 +281,6 @@ for ticker in financial_dir:
     t_df[ticker].loc["BookToMkt",:] = t_df[ticker].loc["BookValue",:]/t_df[ticker].loc["MarketCap",:]
     
     
-    
-'''
-    
-final_stats_val_df = pd.DataFrame(t_df.keys())
-for key in t_df:
-    final_stats_val_df[key] = t_df[key].values.flatten()
-final_stats_val_df.set_index(t_df[key].index,inplace = True)
-
-final_stats_val_df.loc["Comb_Rank"] = final_stats_val_df.loc["EarningYield",:].rank(ascending=False,na_option = 'bottom') + final_stats_val_df.loc["ROC",:].rank(ascending=False,na_option = 'bottom')
-final_stats_val_df.loc["MagicFormulaRank"] = final_stats_val_df.loc["Comb_Rank",:].rank(method = 'first')
-        
-'''
 
 # Create DataFrame using the first key's index (assuming all have same index)
 final_stats_val_df = pd.DataFrame(index=t_df[next(iter(t_df.keys()))].index)
@@ -420,9 +318,6 @@ value_high_div_stocks = final_stats_val_df.T.sort_values("CombinedRank").loc[:,[
 print("------------------------------------------------")
 print("Magic Formula and Dividend Yield combined")
 print(value_high_div_stocks)
-         
-
-### Need ti modify code for better readability and proper naming and all. Then put on github...
 
 
         
